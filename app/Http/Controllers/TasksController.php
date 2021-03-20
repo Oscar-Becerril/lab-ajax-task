@@ -75,9 +75,11 @@ class TasksController extends Controller
     {
         //
         $task=Task::find($id);
-        $arr = $request->input();
-        $task->$description=$arr['description'];
-        $task->$is_done=$arr['is_done'];
+        $state=$request->is_done;
+        //$task->$description=$request('description');
+        
+        $task->is_done=$state;
+       
         $task->save();
         return response()->json($task);
     }

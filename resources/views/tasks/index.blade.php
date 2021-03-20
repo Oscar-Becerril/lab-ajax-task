@@ -23,27 +23,28 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($tasks as $task)
-                <tr id="{{$task->id}}">
-                    <td>
-                        {{ $task->id }}
-                    </td>
-                    <td>
-                        {{ $task->description }}
-                    </td>
-                    <td>
-                    @if($task->is_done==1)
-                        <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }}, {{$task->is_done}});" checked>
-                    @else
-                        <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }}, {{$task->is_done}});" >
-                        @endif
-                        {{ $task->is_done ? 'Terminada' : 'Pendiente' }}
-                    </td>
-                    <td>
-                        <input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" >
-                    </td>
-                </tr>
-                @endforeach
+                    @forelse ($tasks as $task)
+                    <tr id="{{$task->id}}">
+                        <td>
+                            {{ $task->id }}
+                        </td>
+                        <td>
+                            {{ $task->description }}
+                        </td>
+                        <td>
+                        @if($task->is_done==1)
+                            <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }}, {{$task->is_done}});" checked>
+                        @else
+                            <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }}, {{$task->is_done}});" >
+                            @endif
+                            {{ $task->is_done ? 'Terminada' : 'Pendiente' }}
+                        </td>
+                        <td>
+                            <input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" >
+                        </td>
+                    </tr>
+                    @empty
+                    @endforelse
             </tbody>
         </table>
     </div>
@@ -66,14 +67,15 @@
             }
         })
         .done(function(response) {
+            console.log(response);
             $('#description').val('');
-            $('.table tbody').append('<tr><td>' + response.id + '</td><td> ' + response.description + '</td><td><input type="checkbox" id="state" name="pending"/> Pendiente</td><td><input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" ></td></tr>');
+            $('.table tbody').append('<tr id='+ response.id +'><td>' + response.id + '</td><td> ' + response.description + '</td><td><input type="checkbox" id="state" name="pending" onclick="updateTask('+ response.id +','+0+');"/> Pendiente</td><td><input type="button" value="Borrar" onclick="deleteTask('+response.id+');" ></td></tr>');
+            
         })
         .fail(function(jqXHR, response) {
             console.log('Fallido', response);
         });
     }
-
     
 </script>
 <script>
@@ -86,7 +88,6 @@
         }
         var url = "{{ route('tasks.update',0)}}";
         var updUrl = url+id;
-
         //console.log(theState + " " + updUrl);
         
         $.ajax({
@@ -102,20 +103,23 @@
             }
         }).done((res) => {
             //var isChecked = document.getElementById(id).checked;
-
+            if(res.is_done==0){
+                var is_done_text = 0;
+                var status= ' Pendiente';
+                var checked_text = '';
+            }else{
+                var is_done_text = 1;
+                var status= ' Terminada';
+                var checked_text = 'checked';
+            }
             
-            //row.parentNode.updateChild(row);
             var row = document.getElementById(id);
-
-            row.after('<tr><td>' + res.id + '</td><td> ' + res.description + '</td><td><input type="checkbox" id="state" name="pending"/> Pendiente</td><td><input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" ></td></tr>');
+            $( row ).replaceWith( "<tr id='"+ res.id +"'><td>"+ res.id +"</td><td>"+ res.description +"</td><td><input type='checkbox' id='state' name='pending' onclick='updateTask("+ res.id +","+ is_done_text +");' "+checked_text+"/>"+ status +"</td><td><input type='button' value='Borrar' onclick='deleteTask("+res.id+");' ></td></tr>");
             
-            row.parentNode.removeChild(row);
-            //row.replaceWith(row);
-            console.log(res);
+            
         }).fail((jqXHR, res)=> {
             console.log('Fallido', res);
         })
-
     }
  
 </script>
@@ -123,7 +127,6 @@
     function deleteTask(id){
         var url = "{{ route('tasks.destroy', 0)}}";
         var dltUrl = url+id;
-
         $.ajax({
             url: dltUrl,
             method: 'DELETE',
