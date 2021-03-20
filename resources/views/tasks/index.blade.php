@@ -19,12 +19,12 @@
                 <tr>
                     <th>#</th>
                     <th>Descripción</th>
-                    <th>¿Pendiente?</th>
+                    <th>Estatus</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($tasks as $task)
-                <tr>
+                <tr id="{{$task->id}}">
                     <td>
                         {{ $task->id }}
                     </td>
@@ -32,7 +32,11 @@
                         {{ $task->description }}
                     </td>
                     <td>
-                        {{ $task->is_done ? 'No' : 'Sí' }}
+                        <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }});"  {{ $task->is_done ? 'checked' }}>
+                        {{ $task->is_done ? 'Terminada' : 'Pendiente' }}
+                    </td>
+                    <td>
+                        <input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" >
                     </td>
                 </tr>
                 @endforeach
@@ -59,11 +63,60 @@
         })
         .done(function(response) {
             $('#description').val('');
-            $('.table tbody').append('<tr><td>' + response.id + '</td><td> ' + response.description + '</td><td>Sí</td></tr>');
+            $('.table tbody').append('<tr><td>' + response.id + '</td><td> ' + response.description + '</td><td><input type="checkbox" id="state" name="pending"/> Pendiente</td><td><input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" ></td></tr>');
         })
         .fail(function(jqXHR, response) {
             console.log('Fallido', response);
         });
     }
+
+    
 </script>
+<script>
+    function updateTask(id){
+        let theState = $('#state').val();
+        var url = "{{ route('tasks.update', 0)}}";
+        var updUrl = url+id;
+        
+        $.ajax({
+            url: updUrl,
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                is_done: theState
+            }
+        }).done((res) => {
+            var row = document.getElementById(id);
+            row.parentNode.updateChild(row);
+            console.log(res);
+        }).fail((jqXHR, res)=> {
+            console.log('Fallido', res);
+        })
+
+    }
+ 
+</script>
+<script>
+    function deleteTask(id){
+        var url = "{{ route('tasks.destroy', 0)}}";
+        var dltUrl = url+id;
+
+        $.ajax({
+            url: dltUrl,
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+        }).done((res) => {
+            var row = document.getElementById(id);
+            row.parentNode.removeChild(row);
+            console.log(res);
+        }).fail((jqXHR, res)=> {
+            console.log('Fallido', response);
+        })
+    }</script>
 @endpush

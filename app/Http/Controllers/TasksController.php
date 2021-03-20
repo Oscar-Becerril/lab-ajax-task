@@ -74,16 +74,30 @@ class TasksController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $task=Task::find($id);
+        $arr = $request->input();
+        $task->$description=$arr['description'];
+        $task->$is_done=$arr['is_done'];
+        $task->save();
+        return response()->json($task);
     }
 
+    
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+
+    public function destroy( $id)
     {
-        //
+        Task::find($id)->delete();
+        //$task->delete();
+        return response()->json([
+    
+            'success' => 'Record deleted successfully!'
+    
+        ]);
     }
 }
