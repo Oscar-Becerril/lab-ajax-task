@@ -59,11 +59,7 @@
         })
         .done(function(response) {
             $('#description').val('');
-
-            $('.table tbody').append('<tr><td>1</td><td>prueba</td></tr>');
-
-            console.log(response.id);
-            console.log(response.description);
+            $('.table tbody').append('<tr><td>' + response.id + '</td><td> ' + response.description + '</td><td>Sí</td></tr>');
         })
         .fail(function(jqXHR, response) {
             console.log('Fallido', response);
