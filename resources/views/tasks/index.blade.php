@@ -32,7 +32,11 @@
                         {{ $task->description }}
                     </td>
                     <td>
-                        <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }});"  {{ $task->is_done ? 'checked' }}>
+                    @if($task->is_done==1)
+                        <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }}, {{$task->is_done}});" checked>
+                    @else
+                        <input type="checkbox" id="state" name="pending" value="pending" onclick="updateTask({{ $task->id }}, {{$task->is_done}});" >
+                        @endif
                         {{ $task->is_done ? 'Terminada' : 'Pendiente' }}
                     </td>
                     <td>
@@ -73,10 +77,17 @@
     
 </script>
 <script>
-    function updateTask(id){
-        let theState = $('#state').val();
-        var url = "{{ route('tasks.update', 0)}}";
+    function updateTask(id, req_done){
+        var done;
+        if(req_done == 1){
+            done = 0;
+        }else{
+            done = 1;
+        }
+        var url = "{{ route('tasks.update',0)}}";
         var updUrl = url+id;
+
+        //console.log(theState + " " + updUrl);
         
         $.ajax({
             url: updUrl,
@@ -86,11 +97,20 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             data: {
-                is_done: theState
+                is_done : done
+                
             }
         }).done((res) => {
+            //var isChecked = document.getElementById(id).checked;
+
+            
+            //row.parentNode.updateChild(row);
             var row = document.getElementById(id);
-            row.parentNode.updateChild(row);
+
+            row.after('<tr><td>' + res.id + '</td><td> ' + res.description + '</td><td><input type="checkbox" id="state" name="pending"/> Pendiente</td><td><input type="button" value="Borrar" onclick="deleteTask({{ $task->id }});" ></td></tr>');
+            
+            row.parentNode.removeChild(row);
+            //row.replaceWith(row);
             console.log(res);
         }).fail((jqXHR, res)=> {
             console.log('Fallido', res);
